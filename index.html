@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Adding Machine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Archivo:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --body-dark:#241d18;
+    --body-mid:#332920;
+    --panel:#3c2f24;
+    --brass:#b98a4e;
+    --brass-dim:#7a5e38;
+    --paper:#f2ecd8;
+    --paper-shadow:#c9c0a4;
+    --ink:#2a2118;
+    --key-face:#eee6d4;
+    --key-shadow:#8a7454;
+    --op-red:#a5432b;
+    --op-red-dark:#7c3120;
+    --eq-green:#4c6b4f;
+    --eq-green-dark:#37502f;
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100%;
+    background:
+      radial-gradient(ellipse at 50% -10%, #4a3b2c 0%, var(--body-dark) 60%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:28px 14px calc(28px + env(safe-area-inset-bottom,0px));
+    font-family:'Archivo',sans-serif;
+  }
+
+  .machine{
+    width:100%;
+    max-width:360px;
+    background:linear-gradient(180deg,#463829,var(--body-mid) 40%,#2c231c);
+    border-radius:22px;
+    padding:18px 18px 22px;
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,0.7),
+      0 2px 0 rgba(255,255,255,0.04) inset,
+      0 -6px 20px rgba(0,0,0,0.5) inset;
+    position:relative;
+  }
+  .machine::before{
+    content:"";
+    position:absolute;
+    inset:6px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,0.05);
+    pointer-events:none;
+  }
+
+  .brand{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:2px 6px 12px;
+    color:var(--brass);
+  }
+  .brand .name{
+    font-family:'Archivo',sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.04em;
+  }
+  .brand .model{
+    font-size:10px;
+    color:var(--brass-dim);
+    letter-spacing:0.03em;
+  }
+
+  /* Paper tape window */
+  .tape-window{
+    background:#161210;
+    border-radius:10px;
+    padding:10px 8px 0;
+    box-shadow:0 4px 14px rgba(0,0,0,0.6) inset;
+    height:112px;
+    overflow:hidden;
+    position:relative;
+  }
+  .tape-window::after{
+    content:"";
+    position:absolute;
+    left:0;right:0;top:0;
+    height:20px;
+    background:linear-gradient(180deg,#161210, rgba(22,18,16,0));
+    pointer-events:none;
+  }
+  .tape{
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    min-height:100%;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 21px, rgba(0,0,0,0.05) 21px, rgba(0,0,0,0.05) 22px),
+      var(--paper);
+    border-radius:2px 2px 0 0;
+    padding:6px 10px 8px;
+    box-shadow:0 -1px 0 var(--paper-shadow) inset;
+  }
+  .tape-line{
+    font-family:'Special Elite',monospace;
+    font-size:13px;
+    line-height:22px;
+    color:var(--ink);
+    opacity:0.55;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .tape-line:last-child{ opacity:1; font-weight:700; }
+  .tape-line .op{ color:var(--op-red); }
+
+  /* Main display */
+  .display{
+    margin-top:10px;
+    background:linear-gradient(180deg,#efe8d4,var(--paper));
+    border-radius:8px;
+    padding:14px 14px 10px;
+    box-shadow:
+      0 2px 4px rgba(0,0,0,0.4) inset,
+      0 1px 0 rgba(255,255,255,0.4);
+    text-align:right;
+    position:relative;
+  }
+  .display .expr{
+    font-family:'Special Elite',monospace;
+    font-size:13px;
+    color:var(--ink);
+    opacity:0.55;
+    min-height:16px;
+    letter-spacing:0.02em;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .display .value{
+    font-family:'Special Elite',monospace;
+    font-size:34px;
+    color:var(--ink);
+    letter-spacing:0.01em;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    margin-top:2px;
+  }
+
+  /* Keys */
+  .pad{
+    margin-top:16px;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:9px;
+  }
+  button.key{
+    appearance:none;
+    border:none;
+    font-family:'Archivo',sans-serif;
+    font-weight:600;
+    font-size:16px;
+    color:var(--ink);
+    background:linear-gradient(180deg,#fbf6e8,var(--key-face) 55%,#ded4bb);
+    border-radius:50%;
+    aspect-ratio:1/1;
+    box-shadow:
+      0 3px 0 var(--key-shadow),
+      0 5px 8px rgba(0,0,0,0.45);
+    cursor:pointer;
+    transition:transform 0.05s ease, box-shadow 0.05s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  button.key:active,
+  button.key.pressed{
+    transform:translateY(3px);
+    box-shadow:
+      0 0 0 var(--key-shadow),
+      0 1px 3px rgba(0,0,0,0.4);
+  }
+  button.key:focus-visible{
+    outline:2px solid var(--brass);
+    outline-offset:2px;
+  }
+
+  button.key.op{
+    background:linear-gradient(180deg,#c1583a,var(--op-red) 55%,#7c3120);
+    color:#f7ece6;
+    box-shadow:
+      0 3px 0 var(--op-red-dark),
+      0 5px 8px rgba(0,0,0,0.45);
+  }
+  button.key.op:active,
+  button.key.op.pressed{
+    box-shadow:0 0 0 var(--op-red-dark), 0 1px 3px rgba(0,0,0,0.4);
+  }
+
+  button.key.fn{
+    background:linear-gradient(180deg,#5a5044,#443b31 55%,#332b23);
+    color:var(--brass);
+    font-size:14px;
+  }
+  button.key.fn:active,
+  button.key.fn.pressed{
+    box-shadow:0 0 0 #2a231d, 0 1px 3px rgba(0,0,0,0.4);
+  }
+
+  button.key.eq{
+    background:linear-gradient(180deg,#6c8f6f,var(--eq-green) 55%,var(--eq-green-dark));
+    color:#eef5ea;
+    grid-row:span 2;
+    aspect-ratio:auto;
+    font-size:20px;
+    box-shadow:
+      0 3px 0 var(--eq-green-dark),
+      0 5px 8px rgba(0,0,0,0.45);
+  }
+  button.key.eq:active,
+  button.key.eq.pressed{
+    box-shadow:0 0 0 var(--eq-green-dark), 0 1px 3px rgba(0,0,0,0.4);
+  }
+
+  button.key.zero{
+    grid-column:span 2;
+    aspect-ratio:auto;
+    border-radius:26px;
+  }
+
+  .crank{
+    position:absolute;
+    right:-9px;
+    top:70px;
+    width:16px;
+    height:42px;
+    background:linear-gradient(90deg,#8a6a3a,var(--brass),#8a6a3a);
+    border-radius:8px;
+    box-shadow:1px 2px 4px rgba(0,0,0,0.5);
+    display:none;
+  }
+  @media (min-width:420px){ .crank{ display:block; } }
+
+  @media (prefers-reduced-motion: reduce){
+    button.key{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="machine">
+  <div class="crank"></div>
+  <div class="brand">
+    <span class="name">Meridian &amp; Co.</span>
+    <span class="model">No. 7 Adder</span>
+  </div>
+
+  <div class="tape-window">
+    <div class="tape" id="tape">
+      <div class="tape-line"><span>&nbsp;</span></div>
+    </div>
+  </div>
+
+  <div class="display">
+    <div class="expr" id="expr">&nbsp;</div>
+    <div class="value" id="value">0</div>
+  </div>
+
+  <div class="pad">
+    <button class="key fn" data-action="clear">C</button>
+    <button class="key fn" data-action="sign">±</button>
+    <button class="key fn" data-action="percent">%</button>
+    <button class="key op" data-action="op" data-op="÷">÷</button>
+
+    <button class="key" data-action="digit" data-digit="7">7</button>
+    <button class="key" data-action="digit" data-digit="8">8</button>
+    <button class="key" data-action="digit" data-digit="9">9</button>
+    <button class="key op" data-action="op" data-op="×">×</button>
+
+    <button class="key" data-action="digit" data-digit="4">4</button>
+    <button class="key" data-action="digit" data-digit="5">5</button>
+    <button class="key" data-action="digit" data-digit="6">6</button>
+    <button class="key op" data-action="op" data-op="−">−</button>
+
+    <button class="key" data-action="digit" data-digit="1">1</button>
+    <button class="key" data-action="digit" data-digit="2">2</button>
+    <button class="key" data-action="digit" data-digit="3">3</button>
+    <button class="key op" data-action="op" data-op="+" style="grid-row:span 2;">+</button>
+
+    <button class="key zero" data-action="digit" data-digit="0">0</button>
+    <button class="key" data-action="decimal">.</button>
+    <button class="key eq" data-action="equals">=</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const exprEl = document.getElementById('expr');
+  const valueEl = document.getElementById('value');
+  const tapeEl = document.getElementById('tape');
+
+  let current = '0';
+  let stored = null;
+  let pendingOp = null;
+  let justEvaluated = false;
+
+  function fmt(n){
+    if (!isFinite(n)) return 'Error';
+    let s = n.toString();
+    if (s.length > 12) s = parseFloat(n.toPrecision(10)).toString();
+    return s;
+  }
+
+  function render(){
+    valueEl.textContent = current;
+    exprEl.textContent = pendingOp ? (stored + ' ' + pendingOp) : '\u00A0';
+  }
+
+  function addTapeLine(text, isResult){
+    const line = document.createElement('div');
+    line.className = 'tape-line';
+    line.innerHTML = isResult
+      ? '<span>' + text.left + ' <span class="op">' + text.op + '</span></span><span>' + text.right + '</span>'
+      : '<span>' + text + '</span>';
+    tapeEl.appendChild(line);
+    while (tapeEl.children.length > 8) tapeEl.removeChild(tapeEl.firstChild);
+    tapeEl.scrollTop = tapeEl.scrollHeight;
+  }
+
+  function compute(a, op, b){
+    switch(op){
+      case '+': return a + b;
+      case '−': return a - b;
+      case '×': return a * b;
+      case '÷': return b === 0 ? NaN : a / b;
+    }
+  }
+
+  function pressDigit(d){
+    if (justEvaluated){ current = '0'; justEvaluated = false; }
+    if (current === '0' && d !== '.') current = d;
+    else current = current === '0' ? d : current + d;
+    render();
+  }
+
+  function pressDecimal(){
+    if (justEvaluated){ current = '0'; justEvaluated = false; }
+    if (!current.includes('.')) current += '.';
+    render();
+  }
+
+  function pressOp(op){
+    if (pendingOp && !justEvaluated){
+      const result = compute(parseFloat(stored), pendingOp, parseFloat(current));
+      current = fmt(result);
+    }
+    stored = current;
+    pendingOp = op;
+    justEvaluated = false;
+    current = '0';
+    render();
+  }
+
+  function pressEquals(){
+    if (pendingOp === null) return;
+    const a = parseFloat(stored);
+    const b = parseFloat(current);
+    const result = compute(a, pendingOp, b);
+    addTapeLine({ left: fmt(a), op: pendingOp + ' ' + fmt(b), right: fmt(result) }, true);
+    current = fmt(result);
+    pendingOp = null;
+    stored = null;
+    justEvaluated = true;
+    render();
+  }
+
+  function pressClear(){
+    current = '0'; stored = null; pendingOp = null; justEvaluated = false;
+    render();
+  }
+
+  function pressSign(){
+    if (current !== '0') current = current.startsWith('-') ? current.slice(1) : '-' + current;
+    render();
+  }
+
+  function pressPercent(){
+    current = fmt(parseFloat(current) / 100);
+    render();
+  }
+
+  document.querySelectorAll('.key').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const action = btn.dataset.action;
+      if (action === 'digit') pressDigit(btn.dataset.digit);
+      else if (action === 'decimal') pressDecimal();
+      else if (action === 'op') pressOp(btn.dataset.op);
+      else if (action === 'equals') pressEquals();
+      else if (action === 'clear') pressClear();
+      else if (action === 'sign') pressSign();
+      else if (action === 'percent') pressPercent();
+    });
+  });
+
+  window.addEventListener('keydown', (e) => {
+    const k = e.key;
+    let btn = null;
+    if (/^[0-9]$/.test(k)) btn = document.querySelector('[data-digit="'+k+'"]');
+    else if (k === '.') btn = document.querySelector('[data-action="decimal"]');
+    else if (k === '+') btn = document.querySelector('[data-op="+"]');
+    else if (k === '-') btn = document.querySelector('[data-op="−"]');
+    else if (k === '*') btn = document.querySelector('[data-op="×"]');
+    else if (k === '/') btn = document.querySelector('[data-op="÷"]');
+    else if (k === 'Enter' || k === '=') btn = document.querySelector('[data-action="equals"]');
+    else if (k === 'Escape') btn = document.querySelector('[data-action="clear"]');
+    if (btn){
+      e.preventDefault();
+      btn.classList.add('pressed');
+      btn.click();
+      setTimeout(() => btn.classList.remove('pressed'), 90);
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
